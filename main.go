@@ -74,7 +74,7 @@ func mutation(body []byte) ([]byte, error) {
 			resp.UID = ar.UID
 			pt := v1.PatchTypeJSONPatch
 			resp.PatchType = &pt
-			patch := `[{"op":"add","path":"/metadata/labels","value":{"app":"gin"}}]`
+			patch := fmt.Sprintf(`[{"op":"add","path":"/metadata/labels","value":{"app":"%s"}}]`, dep.ObjectMeta.Name)
 			resp.Patch = []byte(patch)
 			resp.Result.Status = "Success"
 			admReview.Response = resp
