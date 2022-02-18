@@ -8,7 +8,7 @@ metadata:
 spec:
   type: ClusterIP
   ports:
-    - port: 8080
+    - port: 443
       protocol: TCP
       targetPort: 8080
   selector:
@@ -53,7 +53,7 @@ spec:
             timeoutSeconds: 10
             httpGet:
               path: /health
-              scheme: HTTP
+              scheme: HTTPS
               port: 8080
           readinessProbe:
             initialDelaySeconds: 10
@@ -61,9 +61,16 @@ spec:
             timeoutSeconds: 10
             httpGet:
               path: /health
-              scheme: HTTP
+              scheme: HTTPS
               port: 8080
           ports:
             - name: http
               protocol: TCP
               containerPort: 8080
+          volumeMounts:
+            - name: cert
+              mountPath: /opt/cert
+      volumes:
+        - name: cert
+          secret:
+            secretName: k8s-cert

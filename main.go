@@ -28,6 +28,7 @@ func validation(ar *v1.AdmissionReview) *v1.AdmissionResponse {
 }
 
 func main() {
+	gin.SetMode(gin.ReleaseMode)
 	app := gin.Default()
 	app.Any("/health", func(ctx *gin.Context) {
 		ctx.String(http.StatusOK, "ok")
@@ -70,7 +71,7 @@ func main() {
 			ctx.String(http.StatusInternalServerError, fmt.Sprintf("could not write response: %v", err))
 		}
 	})
-	if err := app.Run(":8080"); err != nil {
+	if err := app.RunTLS(":8080", "/opt/cert/tls.crt", "/opt/cert/tls.key"); err != nil {
 		log.Print(err)
 	}
 }

@@ -5,7 +5,9 @@ metadata:
   labels:
     app: k8s-webhook
 webhooks:
-  - name: k8s-webhook
+  - name: k8s-webhook.codepy.net
+    sideEffects: None
+    admissionReviewVersions: ["v1", "v1beta1"]
     clientConfig:
       service:
         name: k8s-webhook
