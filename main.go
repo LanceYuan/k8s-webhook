@@ -40,7 +40,7 @@ func main() {
 			log.Println(err)
 			return
 		}
-		contentType := ctx.Request.Header.Get("Content-Typ")
+		contentType := ctx.Request.Header.Get("Content-Type")
 		if contentType != "application/json" {
 			ctx.String(http.StatusUnsupportedMediaType, "invalid Content-Type, expect application/json")
 			return
