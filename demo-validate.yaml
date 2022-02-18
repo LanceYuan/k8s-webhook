@@ -1,0 +1,21 @@
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingWebhookConfiguration
+metadata:
+  name: k8s-webhook
+  labels:
+    app: k8s-webhook
+webhooks:
+  - name: k8s-webhook
+    clientConfig:
+      service:
+        name: k8s-webhook
+        namespace: kube-system
+        path: "/validate"
+    rules:
+      - operations: [ "CREATE" ]
+        apiGroups: ["apps", ""]
+        apiVersions: ["v1"]
+        resources: ["deployments"]
+    namespaceSelector:
+      matchLabels:
+        k8s-webhook: enabled
