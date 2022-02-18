@@ -6,11 +6,13 @@ import (
 	"github.com/gin-gonic/gin"
 	"io/ioutil"
 	"k8s.io/api/admission/v1"
+	appsv1 "k8s.io/api/apps/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
 	"log"
 	"net/http"
+	"strings"
 )
 
 var (
@@ -21,19 +23,38 @@ var (
 
 func validation(ar *v1.AdmissionReview) *v1.AdmissionResponse {
 	req := ar.Request
-	fmt.Print(req)
-	return &v1.AdmissionResponse{
-		Allowed: true,
+	resp := &v1.AdmissionResponse{
+		Allowed: false,
+		Result:  &metav1.Status{},
+	}
+	switch req.Kind.Kind {
+	case "Deployment":
+		var dep appsv1.Deployment
+		if err := json.Unmarshal(req.Object.Raw, &dep); err != nil {
+			resp.Result.Message = err.Error()
+			return resp
+		}
+		if strings.HasPrefix(dep.ObjectMeta.Name, "byt") || strings.HasSuffix(dep.ObjectMeta.Name, "bayantu") {
+			resp.Allowed = true
+			return resp
+		}
+		return resp
+	default:
+		resp.Allowed = true
+		return resp
 	}
 }
 
+func init() {
+	log.SetFlags(log.LstdFlags | log.Lshortfile)
+}
 func main() {
 	gin.SetMode(gin.ReleaseMode)
 	app := gin.Default()
-	app.Any("/health", func(ctx *gin.Context) {
+	app.GET("/health", func(ctx *gin.Context) {
 		ctx.String(http.StatusOK, "ok")
 	})
-	app.Any("/validate", func(ctx *gin.Context) {
+	app.POST("/validate", func(ctx *gin.Context) {
 		var admissionResponse *v1.AdmissionResponse
 		body, err := ioutil.ReadAll(ctx.Request.Body)
 		if err != nil {
@@ -49,13 +70,19 @@ func main() {
 		if _, _, err := deserializer.Decode(body, nil, &ar); err != nil {
 			admissionResponse = &v1.AdmissionResponse{
 				Result: &metav1.Status{
+					Code:    http.StatusNotAcceptable,
 					Message: err.Error(),
 				},
 			}
 		} else {
 			admissionResponse = validation(&ar)
 		}
-		admissionReview := v1.AdmissionReview{}
+		admissionReview := v1.AdmissionReview{
+			TypeMeta: metav1.TypeMeta{
+				Kind:       "AdmissionReview",
+				APIVersion: "admission.k8s.io/v1",
+			},
+		}
 		if admissionResponse != nil {
 			admissionReview.Response = admissionResponse
 			if ar.Request != nil {
