@@ -104,7 +104,7 @@ func mutation(body []byte) ([]byte, error) {
 				patchEnv := map[string]interface{}{
 					"op":    "add",
 					"path":  "/spec/template/spec/containers/0/env/0",
-					"value": map[string]string{"ASPNETCORE_SRV_REGISTER": "k8s"},
+					"value": map[string]string{"name": "ASPNETCORE_SRV_REGISTER", "value": "k8s"},
 				}
 				patchObj = append(patchObj, patchEnv)
 				resp.Patch, err = json.Marshal(patchObj)
