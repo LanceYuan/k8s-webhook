@@ -72,14 +72,21 @@ func mutation(body []byte) ([]byte, error) {
 			}
 			resp.Allowed = true
 			resp.UID = ar.UID
-			pt := v1.PatchTypeJSONPatch
-			resp.PatchType = &pt
-			var patch string
 			if _, ok := dep.ObjectMeta.Labels["app"]; !ok {
-				patch = fmt.Sprintf(`[{"op":"add","path":"/metadata/labels","value":{"app":"%s"}}]`, dep.ObjectMeta.Name)
-			}
-			if patch != "" {
-				resp.Patch = []byte(patch)
+				pt := v1.PatchTypeJSONPatch
+				resp.PatchType = &pt
+				var err error
+				patchObj := []map[string]interface{}{
+					{
+						"op":    "add",
+						"path":  "/metadata/labels",
+						"value": map[string]string{"app": dep.ObjectMeta.Name},
+					},
+				}
+				resp.Patch, err = json.Marshal(patchObj)
+				if err != nil {
+					log.Println(err)
+				}
 			}
 			resp.Result.Status = "Success"
 			admReview.Response = resp
