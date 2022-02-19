@@ -36,7 +36,7 @@ func validation(ar *v1.AdmissionReview) *v1.AdmissionResponse {
 			resp.Result.Code = http.StatusInternalServerError
 			return resp
 		}
-		if strings.HasPrefix(dep.ObjectMeta.Name, "byt") || strings.HasSuffix(dep.ObjectMeta.Name, "bayantu") {
+		if strings.HasPrefix(dep.ObjectMeta.Name, "byt") || strings.HasPrefix(dep.ObjectMeta.Name, "bayantu") {
 			resp.Allowed = true
 			return resp
 		}
