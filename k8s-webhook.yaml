@@ -45,7 +45,7 @@ spec:
             limits:
               cpu: 100m
               memory: 500Mi
-          image: lanceyuan/k8s-webhook:v0.1.2
+          image: lanceyuan/k8s-webhook:v0.0.6
           imagePullPolicy: IfNotPresent
           livenessProbe:
             initialDelaySeconds: 10
