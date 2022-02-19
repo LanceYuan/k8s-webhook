@@ -67,34 +67,46 @@ func mutation(body []byte) ([]byte, error) {
 	if ar != nil {
 		switch ar.Kind.Kind {
 		case "Deployment":
-			var dep appsv1.Deployment
+			var (
+				dep appsv1.Deployment
+				err error
+			)
 			if err := json.Unmarshal(ar.Object.Raw, &dep); err != nil {
 				return nil, fmt.Errorf("unable unmarshal dep json object %v", err)
 			}
 			resp.Allowed = true
 			resp.UID = ar.UID
+			pt := v1.PatchTypeJSONPatch
+			var patchObj []map[string]interface{}
 			if _, ok := dep.ObjectMeta.Labels["app"]; !ok {
-				pt := v1.PatchTypeJSONPatch
 				resp.PatchType = &pt
-				var err error
-				patchObj := []map[string]interface{}{
-					{
-						"op":    "add",
-						"path":  "/metadata/labels",
-						"value": map[string]string{"app": dep.ObjectMeta.Name},
-					},
+
+				patchLabels := map[string]interface{}{
+					"op":    "add",
+					"path":  "/metadata/labels",
+					"value": map[string]string{"app": dep.ObjectMeta.Name},
 				}
-				for _, env := range dep.Spec.Template.Spec.Containers[0].Env {
-					if env.Name == "ASPNETCORE_SRV_REGISTER" {
-						break
-					}
-					patchEnv := map[string]interface{}{
-						"op":    "add",
-						"path":  "/spec/template/spec/containers/0/env/1",
-						"value": map[string]string{"ASPNETCORE_SRV_REGISTER": "k8s"},
-					}
-					patchObj = append(patchObj, patchEnv)
+				patchObj = append(patchObj, patchLabels)
+				resp.Patch, err = json.Marshal(patchObj)
+				if err != nil {
+					log.Println(err)
 				}
+			}
+			findEnv := false
+			for _, env := range dep.Spec.Template.Spec.Containers[0].Env {
+				if env.Name == "ASPNETCORE_SRV_REGISTER" {
+					findEnv = true
+					break
+				}
+			}
+			if !findEnv {
+				resp.PatchType = &pt
+				patchEnv := map[string]interface{}{
+					"op":    "add",
+					"path":  "/spec/template/spec/containers/0/env/0",
+					"value": map[string]string{"ASPNETCORE_SRV_REGISTER": "k8s"},
+				}
+				patchObj = append(patchObj, patchEnv)
 				resp.Patch, err = json.Marshal(patchObj)
 				if err != nil {
 					log.Println(err)
