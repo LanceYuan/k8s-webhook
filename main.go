@@ -41,6 +41,7 @@ func validation(ar *v1.AdmissionReview) *v1.AdmissionResponse {
 			return resp
 		}
 		resp.Result.Code = http.StatusNotAcceptable
+		resp.Result.Message = "app name must be start byt or bayantu."
 		return resp
 	default:
 		resp.Allowed = true
@@ -82,6 +83,17 @@ func mutation(body []byte) ([]byte, error) {
 						"path":  "/metadata/labels",
 						"value": map[string]string{"app": dep.ObjectMeta.Name},
 					},
+				}
+				for _, env := range dep.Spec.Template.Spec.Containers[0].Env {
+					if env.Name == "ASPNETCORE_SRV_REGISTER" {
+						break
+					}
+					patchEnv := map[string]interface{}{
+						"op":    "add",
+						"path":  "/spec/template/spec/containers/0/env/1",
+						"value": map[string]string{"ASPNETCORE_SRV_REGISTER": "k8s"},
+					}
+					patchObj = append(patchObj, patchEnv)
 				}
 				resp.Patch, err = json.Marshal(patchObj)
 				if err != nil {
