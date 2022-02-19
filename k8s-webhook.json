@@ -1,0 +1,20 @@
+{
+  "CN": "kube-webhook.kube-system.svc",
+  "hosts": [
+    "*.kube-system.svc.cluster.local",
+    "*.kube-system.svc"
+  ],
+  "key": {
+    "algo": "rsa",
+    "size": 2048
+  },
+  "names": [
+    {
+      "C": "CN",
+      "ST": "Shanghai",
+      "L": "Shanghai",
+      "O": "kubernetes",
+      "OU": "System"
+    }
+  ]
+}
