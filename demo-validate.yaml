@@ -43,7 +43,7 @@ webhooks:
       - operations: [ "CREATE" ]
         apiGroups: ["apps", ""]
         apiVersions: ["v1"]
-        resources: ["deployments"]
+        resources: ["deployments", "service"]
     namespaceSelector:
       matchLabels:
         k8s-webhook: enabled
