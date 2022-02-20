@@ -13,7 +13,7 @@ stages:
 build:
   stage: build
   script:
-    - docker buildx build -t %{REPO_URL}/${REPO_PROJECT}/${CI_PROJECT_NAME}:${CI_BUILD_REF_NAME} .
+    - docker buildx build -t ${REPO_URL}/${REPO_PROJECT}/${CI_PROJECT_NAME}:${CI_BUILD_REF_NAME} .
     - docker login ${REPO_URL} --username ${REPO_USER} --password ${REPO_USER}
     - docker push %{REPO_URL}/${REPO_PROJECT}/${CI_PROJECT_NAME}:${CI_BUILD_REF_NAME}
   when: manual
