@@ -1,12 +1,19 @@
 before_script:
-  - docker info
+  - docker buildx version
+
+variables:
+  REPO_URL: harbor.codepy.net
+  REPO_PROJECT: lance
+  REPO_USER: admin
+  REPO_PASS: admin
 
 stages:
   - build
+
 build:
   stage: build
   script:
-    - docker buildx build -t harbor.codepy.net/lance/${CI_PROJECT_NAME}:${CI_BUILD_REF_NAME} .
-    - docker login harbor.codepy.net --username admin --password admin
-    - docker push harbor.codepy.net/lance/${CI_PROJECT_NAME}:${CI_BUILD_REF_NAME}
+    - docker buildx build -t %{REPO_URL}/${REPO_PROJECT}/${CI_PROJECT_NAME}:${CI_BUILD_REF_NAME} .
+    - docker login ${REPO_URL} --username ${REPO_USER} --password ${REPO_USER}
+    - docker push %{REPO_URL}/${REPO_PROJECT}/${CI_PROJECT_NAME}:${CI_BUILD_REF_NAME}
   when: manual
