@@ -1,0 +1,12 @@
+before_script:
+  - docker info
+
+stages:
+  - build
+build:
+  stage: build
+  script:
+    - docker buildx build -t harbor.codepy.net/lance/k8s-webhook:v0.0.6 .
+    - docker login harbor.codepy.net --username admin --password admin
+    - docker push harbor.codepy.net/lance/k8s-webhook:v0.0.6
+  when: manual
