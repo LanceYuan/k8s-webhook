@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"k8s.io/api/admission/v1"
 	appsv1 "k8s.io/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
@@ -107,6 +108,34 @@ func mutation(body []byte) ([]byte, error) {
 					"value": map[string]string{"name": "ASPNETCORE_SRV_REGISTER", "value": "k8s"},
 				}
 				patchObj = append(patchObj, patchEnv)
+				resp.Patch, err = json.Marshal(patchObj)
+				if err != nil {
+					log.Println(err)
+				}
+			}
+			resp.Result.Status = "Success"
+			admReview.Response = resp
+			return json.Marshal(admReview)
+		case "Service":
+			var (
+				svc corev1.Service
+				err error
+			)
+			if err := json.Unmarshal(ar.Object.Raw, &svc); err != nil {
+				return nil, fmt.Errorf("unable unmarshal dep json object %v", err)
+			}
+			resp.Allowed = true
+			resp.UID = ar.UID
+			pt := v1.PatchTypeJSONPatch
+			var patchObj []map[string]interface{}
+			if _, ok := svc.ObjectMeta.Labels["app"]; !ok {
+				resp.PatchType = &pt
+				patchLabels := map[string]interface{}{
+					"op":    "add",
+					"path":  "/metadata/labels",
+					"value": map[string]string{"app": svc.ObjectMeta.Name},
+				}
+				patchObj = append(patchObj, patchLabels)
 				resp.Patch, err = json.Marshal(patchObj)
 				if err != nil {
 					log.Println(err)
